@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+
+import yaml
+import importlib
+import time
+
+from collections import OrderedDict
+from datetime import datetime
+
+import rapidtables
+import argparse
+
+from neotermcolor import cprint
+
+exitcode = 0
+
+
+def bytes_to_iso(i):
+    numbers = [(1000, 'k'), (1000000, 'M'), (1000000000, 'G'),
+               (1000000000000, 'T')]
+    if i < 1000:
+        return '{} B'.format(i)
+    for n in numbers:
+        if i < n[0] * 1000:
+            return '{:.1f} {}B'.format(i / n[0], n[1])
+    return '{:.1f} PB'.format(i)
+
+
+try:
+    yaml.warnings({'YAMLLoadWarning': False})
+except:
+    pass
+
+table = []
+result = []
+
+
+def date_to_ts(d):
+    d = str(d).upper()
+    if d.endswith('S'):
+        return float(d[:-1])
+    elif d.endswith('M'):
+        return float(d[:-1]) * 60
+    elif d.endswith('H'):
+        return float(d[:-1]) * 3600
+    elif d.endswith('D'):
+        return float(d[:-1]) * 86400
+    elif d.endswith('W'):
+        return float(d[:-1]) * 86400 * 7
+    elif d.endswith('M'):
+        return float(d[:-1]) * 86400 * 30
+    return float(d)
+
+
+ap = argparse.ArgumentParser()
+
+ap.add_argument('-f',
+                '--config',
+                help='Configuration file',
+                metavar='FILE',
+                default='/usr/local/etc/bakauditor.yml')
+
+ap.add_argument('-x',
+                dest='failed_only',
+                help='Print failed only',
+                action='store_true')
+
+ap.add_argument('backup_id', help='Backup ID', metavar='ID', nargs='?')
+
+a = ap.parse_args()
+
+with open(a.config) as fh:
+    config = yaml.load(fh)
+
+defaults = config.get('default')
+if not defaults: defaults = {}
+
+checked = 0
+failed = 0
+
+if a.backup_id is not None:
+    try:
+        config = {a.backup_id: config[a.backup_id]}
+    except KeyError:
+        cprint('No such backup: {}'.format(a.backup_id), 'red', attrs='bold')
+        exit(2)
+
+for k, v in config.items():
+    if k != 'default':
+        for dk in defaults:
+            if v.get(dk) is None:
+                v[dk] = defaults[dk]
+        checker = importlib.import_module('bakauditor.plugins.{}'.format(
+            v['type']))
+        r = checker.check(**v)
+        checked += 1
+        if r.time > 0:
+            if time.time() - date_to_ts(v['time']) > r.time:
+                r.ok = False
+                r.err = 'Outdated'
+        d = OrderedDict()
+        d['backup'] = k
+        d['date'] = datetime.fromtimestamp(
+            r.time).strftime('%Y-%m-%D %H:%M:%S') if r.time > 0 else '-'
+        d['size'] = bytes_to_iso(r.size) if r.size is not None else '-'
+        d['status'] = 'OK' if r.ok else (r.err if r.err else 'Failed')
+        if not r.ok:
+            exitcode = 1
+            failed += 1
+        if not r.ok or not a.failed_only:
+            table.append(d)
+            result.append({'backup': k, 'r': r})
+
+print('Checked: ', end='')
+cprint(checked, attrs='bold', end='')
+print(', failed: ', end='')
+cprint(str(failed), 'red' if failed else None, attrs='bold' if failed else None)
+print()
+
+if not result:
+    if a.failed_only:
+        cprint('All backups are fine', 'green')
+    exit(exitcode)
+
+table = sorted(table, key=lambda k: k['backup'])
+result = sorted(result, key=lambda k: k['backup'])
+
+h, vals = rapidtables.format_table(table, fmt=rapidtables.FORMAT_GENERATOR)
+
+cprint(h, 'blue')
+cprint('-' * len(h), 'grey')
+for v, r in zip(vals, result):
+    cprint(v, 'red' if not r['r'].ok else None)
+exit(exitcode)

@@ -1,0 +1,18 @@
+default:
+  time: 1D
+  time-fmt: "%Y-%m-%d-%H:%M:%S"
+  min-size: 1000000
+s1-p:
+  type: zfs
+  fs: bu1/bak/stor1/p/backup
+s1-p2:
+  type: zfs
+  fs: s1/p2
+div-vpna:
+  type: zfs
+  fs: bu1/bak/lxc/div-vpna/backup
+  ssh: root@192.168.2.7
+local1:
+  type: file
+  path: /backups/files/local1
+  time: 7d
