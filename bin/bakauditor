@@ -101,7 +101,7 @@ for k, v in config.items():
         d = OrderedDict()
         d['backup'] = k
         d['date'] = datetime.fromtimestamp(
-            r.time).strftime('%Y-%m-%D %H:%M:%S') if r.time > 0 else '-'
+            r.time).strftime('%Y-%m-%d %H:%M:%S') if r.time > 0 else '-'
         d['size'] = bytes_to_iso(r.size) if r.size is not None else '-'
         d['status'] = 'OK' if r.ok else (r.err if r.err else 'Failed')
         if not r.ok:
