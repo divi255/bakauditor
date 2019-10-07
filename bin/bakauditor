@@ -47,8 +47,6 @@ def date_to_ts(d):
         return float(d[:-1]) * 86400
     elif d.endswith('W'):
         return float(d[:-1]) * 86400 * 7
-    elif d.endswith('M'):
-        return float(d[:-1]) * 86400 * 30
     return float(d)
 
 
