@@ -16,3 +16,6 @@ local1:
   type: file
   path: /backups/files/local1
   time: 7d
+local2:
+  type: dir
+  path: /backups/files
