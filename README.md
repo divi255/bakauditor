@@ -80,7 +80,7 @@ Options in this section apply to all backup configurations, unless overriden.
 
 Example:
 
-```
+```yaml
 server1:
     type: file
     path: /export/backups/server1/server1.dump.gz
@@ -98,7 +98,7 @@ Options *time* and *min-size* are optional if specified in *default* section.
 
 Example:
 
-```
+```yaml
 server1:
     type: dir
     path: /export/backups/server1
@@ -114,11 +114,12 @@ incremental backups.
 
 Example:
 
-```
+```yaml
 server1:
     type: zfs
     time-fmt: "snapshot-%Y-%m%-%d-%H:%M:%S"
     fs: bakpool/server1
+```
 
 Option *time-fmt* is used to get snapshot creation time from snapshot name.  We
 can not determine when ZFS snapshot has been created (unless we perform *zfs
@@ -130,7 +131,7 @@ Option *fs* specifies file system, where snapshots are located.
 Optionally, you may ask **bakauditor** to analyze ZFS snapshot on remote server
 via ssh, specifying *ssh* option:
 
-```
+```yaml
 server1:
     type: zfs
     time-fmt: "snapshot-%Y-%m%-%d-%H:%M:%S"
