@@ -1,7 +1,8 @@
 default:
   time: 1D
   time-fmt: "%Y-%m-%d-%H:%M:%S"
-  min-size: 1000000
+  # use k for kbytes, M for megabytes etc.
+  min-size: 1M
 s1-p:
   type: zfs
   fs: bu1/bak/stor1/p/backup

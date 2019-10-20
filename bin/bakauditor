@@ -16,17 +16,7 @@ from types import SimpleNamespace
 
 exitcode = 0
 
-
-def bytes_to_iso(i):
-    numbers = [(1000, 'k'), (1000000, 'M'), (1000000000, 'G'),
-               (1000000000000, 'T')]
-    if i < 1000:
-        return '{} B'.format(i)
-    for n in numbers:
-        if i < n[0] * 1000:
-            return '{:.1f} {}B'.format(i / n[0], n[1])
-    return '{:.1f} PB'.format(i)
-
+from bakauditor.tools import bytes_to_iso
 
 try:
     yaml.warnings({'YAMLLoadWarning': False})

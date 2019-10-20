@@ -5,6 +5,8 @@ from types import SimpleNamespace
 import dateutil.parser
 import json
 
+from bakauditor.tools import iso_to_bytes
+
 
 def get_borg(ssh=None, pw=None, repo=None):
     ssh_cmd = '' if not ssh else 'ssh {} '.format(ssh)
@@ -26,7 +28,7 @@ def check(**kwargs):
         result.time = dateutil.parser.parse(t).timestamp()
         result.size = j['archives'][0]['stats']['original_size']
         if 'min-size' in kwargs:
-            result.ok = result.size >= kwargs.get('min-size')
+            result.ok = result.size >= iso_to_bytes(kwargs['min-size'])
             if not result.ok:
                 result.err = 'Too small'
         else:
