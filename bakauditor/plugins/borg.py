@@ -11,20 +11,26 @@ def get_borg(ssh=None, pw=None, repo=None):
     result = []
     if pw == None:
         pw = ''
-    with os.popen('{}env BORG_PASSPHRASE={} borg info --last 1 --json {} 2>&1'.format(
-            ssh_cmd, pw, repo)) as p:
+    with os.popen(
+            '{}env BORG_PASSPHRASE={} borg info --last 1 --json {} 2>&1'.format(
+                ssh_cmd, pw, repo)) as p:
         return p.read()
 
 
 def check(**kwargs):
     result = SimpleNamespace(ok=False, time=0, size=None, err=None)
-    r = get_borg(kwargs.get('ssh'), kwargs.get('password'),
-                     kwargs['repo'])
+    r = get_borg(kwargs.get('ssh'), kwargs.get('password'), kwargs['repo'])
     try:
-        t = json.loads(r)['repository']['last_modified']
+        j = json.loads(r)
+        t = j['repository']['last_modified']
         result.time = dateutil.parser.parse(t).timestamp()
-        result.size = json.loads(r)['archives'][0]['stats']['original_size']
-        result.ok = True
+        result.size = j['archives'][0]['stats']['original_size']
+        if 'min-size' in kwargs:
+            result.ok = result.size >= kwargs.get('min-size')
+            if not result.ok:
+                result.err = 'Too small'
+        else:
+            result.ok = True
     except json.decoder.JSONDecodeError:
         if r.startswith('passphrase supplied in '):
             result.err = 'Invalid passphrase'
