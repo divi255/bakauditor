@@ -12,6 +12,8 @@ import argparse
 
 from neotermcolor import cprint
 
+from types import SimpleNamespace
+
 exitcode = 0
 
 
@@ -90,7 +92,10 @@ for k, v in config.items():
                 v[dk] = defaults[dk]
         checker = importlib.import_module('bakauditor.plugins.{}'.format(
             v['type']))
-        r = checker.check(**v)
+        try:
+            r = checker.check(**v)
+        except Exception as e:
+            r = SimpleNamespace(ok=False, time=0, size=None, err=str(e))
         checked += 1
         if r.time > 0:
             if time.time() - date_to_ts(v['time']) > r.time:
