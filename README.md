@@ -23,6 +23,8 @@ Currently, **bakauditor** supports backup audit via plugins:
 
 * **zfs** check if ZFS snapshots exists on local or remote system
 
+* **borg** borg backup repositories, local or remote
+
 ## How to use
 
 Just run
@@ -143,6 +145,19 @@ This option is just converted to command *ssh <option_value> zfs list ...* so
 you may specify any options for ssh program you like.
 
 Note: *min-size* option for zfs snapshots is ignored.
+
+### borg
+
+Example:
+
+```yaml
+borg-local:
+  type: borg
+  repo: /bak
+  password: 123
+```
+
+To check repo on remote system, add "ssh" option.
 
 ## TODO
 
