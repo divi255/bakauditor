@@ -12,7 +12,7 @@ def check(**kwargs):
     result.time = t
     result.size = size
     if 'min-size' in kwargs:
-        result.ok = size > kwargs.get('min-size')
+        result.ok = size >= kwargs.get('min-size')
         if not result.ok:
             result.err = 'Too small'
     else:
