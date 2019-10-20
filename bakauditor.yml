@@ -19,3 +19,7 @@ local1:
 local2:
   type: dir
   path: /backups/files
+borg-repo1:
+  type: borg
+  repo: /bak
+  password: 123
