@@ -9,7 +9,9 @@ import json
 def get_borg(ssh=None, pw=None, repo=None):
     ssh_cmd = '' if not ssh else 'ssh {} '.format(ssh)
     result = []
-    with os.popen('{}env BORG_PASSPHRASE={} borg list --json {} 2>&1'.format(
+    if pw == None:
+        pw = ''
+    with os.popen('{}env BORG_PASSPHRASE={} borg info --last 1 --json {} 2>&1'.format(
             ssh_cmd, pw, repo)) as p:
         return p.read()
 
@@ -21,6 +23,7 @@ def check(**kwargs):
     try:
         t = json.loads(r)['repository']['last_modified']
         result.time = dateutil.parser.parse(t).timestamp()
+        result.size = json.loads(r)['archives'][0]['stats']['original_size']
         result.ok = True
     except json.decoder.JSONDecodeError:
         if r.startswith('passphrase supplied in '):
