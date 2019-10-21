@@ -159,6 +159,9 @@ borg-local:
 
 To check repo on remote system, add "ssh" option.
 
+Note: plugin requires **borg** > 1.1.0, for older version use *borg0* instead
+(doesn't check backup size).
+
 ## TODO
 
 plugins for
