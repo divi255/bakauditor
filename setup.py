@@ -1,4 +1,4 @@
-__version__ = '0.0.12'
+__version__ = '0.0.13'
 
 import setuptools
 
@@ -16,7 +16,9 @@ setuptools.setup(
     url="https://github.com/divi255/bakauditor",
     packages=setuptools.find_packages(),
     license='MIT',
-    install_requires=['pyyaml', 'rapidtables', 'neotermcolor', 'dateutil'],
+    install_requires=[
+        'pyyaml', 'rapidtables', 'neotermcolor', 'python-dateutil'
+    ],
     scripts=['bin/bakauditor'],
     include_package_data=True,
     classifiers=('Programming Language :: Python :: 3',
