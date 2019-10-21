@@ -10,12 +10,9 @@ from bakauditor.tools import iso_to_bytes
 
 def get_borg(ssh=None, pw=None, repo=None):
     ssh_cmd = '' if not ssh else 'ssh {} '.format(ssh)
-    result = []
-    if pw == None:
-        pw = ''
     with os.popen(
             '{}env BORG_PASSPHRASE={} borg info --last 1 --json {} 2>&1'.format(
-                ssh_cmd, pw, repo)) as p:
+                ssh_cmd, '' if pw is None else pw, repo)) as p:
         return p.read()
 
 
