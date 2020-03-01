@@ -78,6 +78,10 @@ default:
 
 Options in this section apply to all backup configurations, unless overriden.
 
+The size may be specified in bytes, you may also use suffix "K" for Kbytes
+(kilobytes, not kibitytes, 1K = 1000 bytes), "M" for MBytes, "G" for Gbytes,
+"T" for TBytes.
+
 ### file
 
 Example:
@@ -111,6 +115,21 @@ server1:
 This example will to the same as previous, but automatically get the most
 recent file in the specified directory and check it. Good, when you do e.g.
 incremental backups.
+
+### directory of directories
+
+Example:
+```yaml
+server1:
+    type: dod
+    path: /export/backups/somebackup
+    time: 3d
+    min-size:
+```
+
+This example considers backups are stored in separate directories inside
+"somebackup" directory. The program will find most recently created directory
+and calculate its total size.
 
 ### zfs
 

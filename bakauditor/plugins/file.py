@@ -8,7 +8,11 @@ def check(**kwargs):
     result = SimpleNamespace(ok=False, time=0, size=None, err=None)
     try:
         t = os.path.getmtime(kwargs['path'])
-        size = os.path.getsize(kwargs['path'])
+        if os.path.isfile(kwargs['path']):
+            size = os.path.getsize(kwargs['path'])
+        else:
+            with os.popen('du -s {}'.format(kwargs['path'])) as fp:
+                size = int(fp.readline().split()[0])
     except:
         return result
     result.time = t
