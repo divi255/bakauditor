@@ -11,7 +11,7 @@ def check(**kwargs):
         if os.path.isfile(kwargs['path']):
             size = os.path.getsize(kwargs['path'])
         else:
-            with os.popen('du -s {}'.format(kwargs['path'])) as fp:
+            with os.popen('du -sB1 {}'.format(kwargs['path'])) as fp:
                 size = int(fp.readline().split()[0])
     except:
         return result
