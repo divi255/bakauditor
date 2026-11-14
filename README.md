@@ -255,3 +255,10 @@ For an integration test that initializes and backs up to a disposable temporary
 repository, set `RESTIC_TEST_BIN=/absolute/path/to/restic` before running the
 unit tests. This never uses your configured production repositories. CI runs
 both unit and real-repository tests on Python 3.10, 3.12 and 3.14.
+
+For repositories deliberately initialized without a password (restic 0.17+
+with support for `--insecure-no-password`), set `insecure-no-password: true`.
+This must be explicitly enabled per check; it is never inferred or used as a
+fallback for authentication failures. It cannot be combined with `password` or
+`password-file`. In this mode inherited restic password environment variables
+are cleared for the child process. Existing encrypted repositories are unchanged.

@@ -9,12 +9,17 @@ class CommandError(RuntimeError):
     """Safe diagnostic without command arguments or backend output."""
 
 
-def run(args, *, ssh=None, password=None, password_var=None, timeout=60):
+def run(args, *, ssh=None, password=None, password_var=None, timeout=60, unset_env=()):
     timeout = float(timeout)
     if not math.isfinite(timeout) or timeout <= 0:
         raise ValueError('timeout must be positive and finite')
     args = [str(arg) for arg in args]
     env = os.environ.copy()
+    allowed = {'RESTIC_PASSWORD', 'RESTIC_PASSWORD_FILE', 'RESTIC_PASSWORD_COMMAND'}
+    if not set(unset_env) <= allowed:
+        raise ValueError('unsupported environment variable')
+    for name in unset_env:
+        env.pop(name, None)
     data = None
     if password is not None:
         password = str(password)
@@ -28,6 +33,8 @@ def run(args, *, ssh=None, password=None, password_var=None, timeout=60):
             remote = (f'IFS= read -r {password_var}; export {password_var}; '
                       f'exec {remote}')
             data = password + '\n'
+        if unset_env:
+            remote = 'unset ' + ' '.join(unset_env) + '; ' + remote
         args = ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10',
                 *shlex.split(ssh), remote]
     elif password is not None:

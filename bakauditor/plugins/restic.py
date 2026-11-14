@@ -8,10 +8,19 @@ from bakauditor.tools import iso_to_bytes
 
 def check(**kwargs):
     args = ['restic', '--json', '--repo', kwargs['repo']]
+    insecure = kwargs.get('insecure-no-password', False)
+    if not isinstance(insecure, bool):
+        raise ValueError('insecure-no-password must be a boolean')
+    if insecure and (kwargs.get('password') is not None or kwargs.get('password-file')):
+        raise ValueError('insecure-no-password conflicts with password options')
+    if insecure:
+        args += ['--insecure-no-password']
     if kwargs.get('password-file'):
         args += ['--password-file', kwargs['password-file']]
     options = dict(ssh=kwargs.get('ssh'), password=kwargs.get('password'),
                    password_var='RESTIC_PASSWORD', timeout=kwargs.get('timeout', 60))
+    if insecure:
+        options['unset_env'] = ('RESTIC_PASSWORD', 'RESTIC_PASSWORD_FILE', 'RESTIC_PASSWORD_COMMAND')
     filters = []
     for key in ('host', 'path', 'tag'):
         value = kwargs.get(key)

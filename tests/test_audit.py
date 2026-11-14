@@ -120,6 +120,15 @@ class CommandTests(unittest.TestCase):
 
 
 class BackendTests(unittest.TestCase):
+    def test_restic_explicit_passwordless(self):
+        with patch('bakauditor.plugins.restic.run',return_value='[]') as mocked:
+            restic.check(repo='/bak', **{'insecure-no-password':True})
+            self.assertIn('--insecure-no-password',mocked.call_args.args[0])
+            self.assertIn('RESTIC_PASSWORD_FILE',mocked.call_args.kwargs['unset_env'])
+        for options in ({'insecure-no-password':'true'},
+                        {'insecure-no-password':True,'password':'secret'}):
+            with self.assertRaises(ValueError): restic.check(repo='/bak',**options)
+
     def test_restic_latest_and_pinned_stats(self):
         snapshots = [{'id':'new','time':'2026-01-02T00:00:00Z'},
                      {'id':'old','time':'2026-01-01T00:00:00Z'}]
