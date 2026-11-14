@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.1.1
+
+- Support explicitly passwordless restic repositories via `insecure-no-password`.
+- Clear inherited password settings for passwordless checks; reject conflicting options.
+- Add coverage for explicit passwordless mode.
+
+## 0.1.0
 
 - Require Python 3.10+, PEP 517 packaging and an importable CLI entry point.
 - Load YAML safely and validate configuration; empty check sets exit with error.
@@ -14,5 +20,3 @@
 - Add restic snapshot freshness and optional restore-size auditing, with filters,
   native remote repository URLs, password files and optional SSH execution.
 - Add unit/integration tests and a Python 3.10/3.12/3.14 CI matrix.
-
-No release version or tag is changed by this work.
