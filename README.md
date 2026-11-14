@@ -142,10 +142,9 @@ server1:
     fs: bakpool/server1
 ```
 
-Option *time-fmt* is used to get snapshot creation time from snapshot name.  We
-can not determine when ZFS snapshot has been created (unless we perform *zfs
-get creation* for every snapshot, which could be pretty slow), but if snapshot
-name contains time, we can decode it and check.
+Option *time-fmt* optionally decodes the snapshot creation time from its name.
+If omitted, the native ZFS creation timestamp is used. Only snapshots belonging
+to the exact configured file system are considered.
 
 Option *fs* specifies file system, where snapshots are located.
 
@@ -190,3 +189,69 @@ plugins for
 * VMWare DP
 * Acronis
 * etc.
+
+## Python and failure handling
+
+Requires Python 3.10 or newer. Install from a checkout with `python -m pip install .`.
+Run tests with `python -m unittest discover -s tests -v`.
+
+Each backup needs a positive `time` limit (possibly inherited from `default`).
+An empty configuration is an error, not a successful audit. Exit codes are:
+`0` all configured checks passed, `1` one or more failed, `2` invalid configuration.
+Malformed backend output, failed commands and timeouts fail the affected check;
+other checks continue. Backend error output is not echoed, to avoid disclosing
+credentials. `timeout` sets the per-command timeout in seconds (default: 60).
+SSH uses batch mode and a 10-second connection timeout. Existing `ssh` option
+strings (including ports and identity options) are supported.
+
+Borg freshness now uses the archive start time instead of repository modification
+time. ZFS uses native snapshot creation timestamps if `time-fmt` is omitted;
+explicit snapshot-name formats remain supported. `dod` measures regular-file
+bytes recursively without following directory symlinks (not allocated disk blocks).
+
+### restic
+
+The `restic` executable must be installed locally, or on the SSH execution host.
+Native restic repository URLs support SFTP, REST, S3 and other restic backends;
+the optional `ssh` setting instead executes restic on a remote machine.
+
+```yaml
+restic-server1:
+  type: restic
+  repo: sftp:backup@backup-host:/srv/restic/server1
+  time: 2d
+  min-size: 1G
+  host: server1
+  tag: daily
+  # path: /srv/data
+  # password-file: /secure/restic-password
+  timeout: 120
+```
+
+`host`, `path` and `tag` are optional restic snapshot filters; each accepts a
+string or a list. Filter semantics are restic's (e.g. comma-separated tags for
+AND, repeated tags for OR). The newest matching snapshot is chosen by its timestamp,
+not output order. No matching snapshot fails the check.
+
+Password options: inherit `RESTIC_PASSWORD` / `RESTIC_PASSWORD_FILE` from the
+execution environment, set `password-file`, or set `password` in the configuration.
+Prefer an environment or a protected password file; protect YAML containing secrets.
+A configured password is passed through the environment locally and stdin over SSH,
+not embedded in process arguments. Remote password-file paths refer to the remote
+machine; other backend credentials must already be configured there. Single-line
+passwords are supported when specified in YAML.
+
+If `min-size` is set, the auditor runs `restic stats --mode restore-size` against
+the exact chosen snapshot ID and compares its logical restore size, not the
+compressed/deduplicated repository size. Without `min-size`, size is displayed as
+`-` and the extra stats traversal is skipped.
+
+This is a **freshness/size audit**, not proof of recoverability or integrity.
+Schedule `restic check` and restoration exercises separately. See the official
+[restic scripting documentation](https://restic.readthedocs.io/en/stable/075_scripting.html)
+for JSON and credential environment variables.
+
+For an integration test that initializes and backs up to a disposable temporary
+repository, set `RESTIC_TEST_BIN=/absolute/path/to/restic` before running the
+unit tests. This never uses your configured production repositories. CI runs
+both unit and real-repository tests on Python 3.10, 3.12 and 3.14.

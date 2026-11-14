@@ -17,9 +17,10 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     license='MIT',
     install_requires=[
-        'pyyaml', 'rapidtables', 'neotermcolor', 'python-dateutil'
+        'pyyaml>=6', 'rapidtables', 'neotermcolor', 'python-dateutil>=2.8.2'
     ],
-    scripts=['bin/bakauditor'],
+    python_requires='>=3.10',
+    entry_points={'console_scripts': ['bakauditor=bakauditor.cli:main']},
     include_package_data=True,
     classifiers=('Programming Language :: Python :: 3',
                  'License :: OSI Approved :: MIT License',

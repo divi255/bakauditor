@@ -1,29 +1,17 @@
-import os
-
 from types import SimpleNamespace
-
-import dateutil.parser
-import json
-
-from bakauditor.tools import iso_to_bytes
+from dateutil.parser import parse
+from bakauditor.command import run
 
 
-def get_borg(ssh=None, pw=None, repo=None):
-    ssh_cmd = '' if not ssh else 'ssh {} '.format(ssh)
-    with os.popen('{}env BORG_PASSPHRASE={} borg list {} 2>&1'.format(
-            ssh_cmd, '' if pw is None else pw, repo)) as p:
-        return p.readlines()
+def get_borg(ssh=None, pw=None, repo=None, timeout=60):
+    return run(['borg', 'list', repo], ssh=ssh, password=pw,
+               password_var='BORG_PASSPHRASE', timeout=timeout).splitlines()
 
 
 def check(**kwargs):
-    result = SimpleNamespace(ok=False, time=0, size=None, err=None)
-    for r in get_borg(kwargs.get('ssh'), kwargs.get('password'),
-                      kwargs['repo']):
-        try:
-            result.time = max(
-                result.time,
-                dateutil.parser.parse(r.split(maxsplit=1)[1]).timestamp())
-            result.ok = True
-        except:
-            result.err = 'Command failed'
-    return result
+    times = [parse(line.split(maxsplit=1)[1]).timestamp()
+             for line in get_borg(kwargs.get('ssh'), kwargs.get('password'),
+                                  kwargs['repo'], kwargs.get('timeout', 60))
+             if line.strip()]
+    return SimpleNamespace(ok=bool(times), time=max(times, default=0), size=None,
+                           err=None if times else 'No archives')

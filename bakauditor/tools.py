@@ -6,7 +6,7 @@ def bytes_to_iso(i):
     for n in numbers:
         if i < n[0] * 1000:
             return '{:.1f} {}B'.format(i / n[0], n[1])
-    return '{:.1f} PB'.format(i)
+    return '{:.1f} PB'.format(i / 1000000000000000)
 
 
 def iso_to_bytes(i):
